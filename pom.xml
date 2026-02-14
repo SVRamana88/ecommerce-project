@@ -77,6 +77,17 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>11.20.0</version>
+				<configuration>
+					<url>jdbc:postgresql://localhost:5432/ecommerce</url>
+					<user>postgres</user>
+					<password>8888</password>
+					<cleanDisabled>false</cleanDisabled>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>

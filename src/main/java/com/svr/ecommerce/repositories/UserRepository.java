@@ -1,0 +1,7 @@
+package com.svr.ecommerce.repositories;
+
+import com.svr.ecommerce.entities.User;
+import org.springframework.data.repository.CrudRepository;
+
+public interface UserRepository extends CrudRepository<User, Long> {
+}
