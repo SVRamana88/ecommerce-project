@@ -5,6 +5,7 @@ import com.svr.ecommerce.entities.User;
 import com.svr.ecommerce.mappers.UserMapper;
 import com.svr.ecommerce.repositories.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @AllArgsConstructor
@@ -24,8 +26,13 @@ public class UserController {
 
     //@RequestMapping("/users") //by default GET Method User
     @GetMapping("")
-    public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream().map((userMapper::toDto))
+    public List<UserDto> getAllUsers(@RequestParam(required = false, defaultValue = "", name = "sort") String sortBy) {
+        if(!Set.of("name", "email").contains(sortBy))
+            sortBy = "name";
+
+        return userRepository.findAll(Sort.by(sortBy))
+                .stream()
+                .map((userMapper::toDto))
                 .toList();
     }
 
