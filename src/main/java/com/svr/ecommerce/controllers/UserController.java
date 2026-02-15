@@ -2,6 +2,7 @@ package com.svr.ecommerce.controllers;
 
 import com.svr.ecommerce.dtos.UserDto;
 import com.svr.ecommerce.entities.User;
+import com.svr.ecommerce.mappers.UserMapper;
 import com.svr.ecommerce.repositories.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,11 +20,12 @@ public class UserController {
     //hello world
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     //@RequestMapping("/users") //by default GET Method User
     @GetMapping("")
     public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream().map((user -> new UserDto(user.getId(),  user.getName(), user.getEmail())))
+        return userRepository.findAll().stream().map((userMapper::toDto))
                 .toList();
     }
 
@@ -35,6 +37,6 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
         //return new ResponseEntity<>(user, HttpStatus.OK);
-        return ResponseEntity.ok(new UserDto(user.getId(),  user.getName(), user.getEmail()));
+        return ResponseEntity.ok(userMapper.toDto(user));
     }
 }

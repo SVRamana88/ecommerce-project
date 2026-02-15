@@ -52,6 +52,18 @@
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 
+		<!-- MapStruct API (required at runtime) -->
+		<dependency>
+			<artifactId>mapstruct-processor</artifactId>
+			<groupId>org.mapstruct</groupId>
+			<version>1.6.3</version>
+		</dependency>
+		<dependency>
+			<artifactId>mapstruct</artifactId>
+			<groupId>org.mapstruct</groupId>
+			<version>1.6.2</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -100,6 +112,11 @@
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+						</path>
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>1.6.3</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
