@@ -1,5 +1,6 @@
 package com.svr.ecommerce.controllers;
 
+import com.svr.ecommerce.dtos.ChangePasswordRequest;
 import com.svr.ecommerce.dtos.RegisterUserRequest;
 import com.svr.ecommerce.dtos.UpdateUserRequest;
 import com.svr.ecommerce.dtos.UserDto;
@@ -80,5 +81,21 @@ public class UserController {
         if(user == null) return  ResponseEntity.notFound().build();
         userRepository.delete(user);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<Void> changePassword(
+            @PathVariable Long id,
+            @RequestBody ChangePasswordRequest request
+            ) {
+        var user = userRepository.findById(id).orElse(null);
+        if(user == null) return  ResponseEntity.notFound().build();
+
+        if(user.getPassword().equals(request.getOldPassword())) {
+            user.setPassword(request.getNewPassword());
+            userRepository.save(user);
+            return ResponseEntity.noContent().build();
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 }
