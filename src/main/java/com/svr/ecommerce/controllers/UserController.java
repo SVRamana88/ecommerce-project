@@ -59,10 +59,13 @@ public class UserController {
 
     //@Valid Throws MethodArgumentNotValidException
     @PostMapping()
-    public ResponseEntity<UserDto> createUser(
+    public ResponseEntity<?> createUser(
             @Valid @RequestBody RegisterUserRequest request,
             UriComponentsBuilder uriBuilder
     ) {
+        if(userRepository.existsByEmail(request.getEmail())) return ResponseEntity.badRequest().body(
+                Map.of("email", "Email Alredy Registered")
+        );
         var user = userRepository.save(userMapper.toEntity(request));
         var userDto = userMapper.toDto(user);
         var uri = uriBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
