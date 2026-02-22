@@ -7,16 +7,21 @@ import com.svr.ecommerce.dtos.UserDto;
 import com.svr.ecommerce.entities.User;
 import com.svr.ecommerce.mappers.UserMapper;
 import com.svr.ecommerce.repositories.UserRepository;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -51,8 +56,13 @@ public class UserController {
         return ResponseEntity.ok(userMapper.toDto(user));
     }
 
+
+    //@Valid Throws MethodArgumentNotValidException
     @PostMapping()
-    public ResponseEntity<UserDto> createUser(@RequestBody RegisterUserRequest request, UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<UserDto> createUser(
+            @Valid @RequestBody RegisterUserRequest request,
+            UriComponentsBuilder uriBuilder
+    ) {
         var user = userRepository.save(userMapper.toEntity(request));
         var userDto = userMapper.toDto(user);
         var uri = uriBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
@@ -97,5 +107,14 @@ public class UserController {
             return ResponseEntity.noContent().build();
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationErrors(
+            MethodArgumentNotValidException exception
+    ) {
+        var errors = new HashMap<String, String>();
+        exception.getBindingResult().getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+        return ResponseEntity.badRequest().body(errors);
     }
 }
