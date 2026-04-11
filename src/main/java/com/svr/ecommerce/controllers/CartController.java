@@ -4,11 +4,9 @@ import com.svr.ecommerce.dtos.AddItemToCartRequest;
 import com.svr.ecommerce.dtos.CartDto;
 import com.svr.ecommerce.dtos.CartItemDto;
 import com.svr.ecommerce.dtos.UpdateCartItemRequest;
-import com.svr.ecommerce.entities.Cart;
-import com.svr.ecommerce.entities.CartItem;
-import com.svr.ecommerce.mappers.CartMapper;
-import com.svr.ecommerce.repositories.CartRepository;
-import com.svr.ecommerce.repositories.ProductRepository;
+import com.svr.ecommerce.exceptions.CartNotFoundException;
+import com.svr.ecommerce.exceptions.ProductNotFoundException;
+import com.svr.ecommerce.services.CartService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,17 +21,13 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/carts")
 public class CartController {
-    final private CartRepository cartRepository;
-    final private ProductRepository productRepository;
-    final private CartMapper cartMapper;
+    final private CartService cartService;
 
     @PostMapping
     public ResponseEntity<CartDto> createCart(
             UriComponentsBuilder uriBuilder
     ) {
-        var cart = new Cart();
-        cartRepository.save(cart);
-        var cartDto = cartMapper.toDto(cart);
+        var cartDto = cartService.createCart();
         var uri = uriBuilder.path("/carts/{id}").buildAndExpand(cartDto.getId()).toUri();
         return ResponseEntity.created(uri).body(cartDto);
     }
@@ -43,40 +37,25 @@ public class CartController {
             @PathVariable UUID cartId,
             @RequestBody AddItemToCartRequest request
     ) {
-        var cart = cartRepository.getCartWithItems(cartId).orElse(null);
-        if (cart == null) return ResponseEntity.notFound().build();
-        var product = productRepository.findById(request.getProductId()).orElse(null);
-        if (product == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        var cartItem = cart.addItem(product);
-        cartRepository.save(cart);
-        return ResponseEntity.status(HttpStatus.CREATED).body(cartMapper.toDto(cartItem));
+        var cartItemdto = cartService.addToCart(cartId, request.getProductId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(cartItemdto);
     }
 
     @GetMapping("{cartId}")
-    public ResponseEntity<CartDto> getCarts(
+    public CartDto getCarts(
             @PathVariable UUID cartId
     ) {
-        var carts = cartRepository.getCartWithItems(cartId).orElse(null);
-        if (carts == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(cartMapper.toDto(carts));
+        return cartService.getCart(cartId);
     }
 
 
     @PutMapping("{cartId}/items/{productId}")
-    public ResponseEntity<?> updateItem(
+    public CartItemDto updateItem(
             @PathVariable UUID cartId,
             @PathVariable Long productId,
             @Valid @RequestBody UpdateCartItemRequest request
     ) {
-        var cart = cartRepository.getCartWithItems(cartId).orElse(null);
-        if (cart == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Cart not found"));
-        var cartItem = cart.getItem(productId);
-        if (cartItem == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "CartItem not found"));
-        cartItem.setQuantity(request.getQuantity());
-        cartRepository.save(cart);
-        return ResponseEntity.status(HttpStatus.CREATED).body(cartMapper.toDto(cartItem));
+        return cartService.updateItem(cartId, productId, request);
     }
 
     @DeleteMapping("{cartId}/items/{productId}")
@@ -84,11 +63,7 @@ public class CartController {
             @PathVariable UUID cartId,
             @PathVariable Long productId
     ) {
-        var cart = cartRepository.getCartWithItems(cartId).orElse(null);
-        if (cart == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Cart not found"));
-        cart.removeItem(productId);
-        cartRepository.save(cart);
+        cartService.deleteItem(cartId, productId);
         return ResponseEntity.noContent().build();
     }
 
@@ -96,10 +71,17 @@ public class CartController {
     public ResponseEntity<?> clearItems(
             @PathVariable UUID cartId
     ) {
-        var cart = cartRepository.getCartWithItems(cartId).orElse(null);
-        if (cart == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Cart not found"));
-        cart.clear();
-        cartRepository.save(cart);
+        cartService.clearItems(cartId);
         return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(CartNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleCartNotFound() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Cart not found."));
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleProductNotFound() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Product was  not found in the cart."));
     }
 }
