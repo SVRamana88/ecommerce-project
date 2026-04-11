@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,6 +32,26 @@ public class Cart {
 
     public BigDecimal getTotalPrice() {
         return items.stream().map(CartItem::getTotalPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public CartItem getItem(Long productId) {
+        return items.stream()
+                .filter(item -> item.getProduct().getId().equals(productId))
+                .findFirst().orElse(null);
+    }
+
+    public CartItem addItem(Product product) {
+        var cartItem = getItem(product.getId());
+        if (cartItem != null) {
+            cartItem.setQuantity(cartItem.getQuantity() + 1);
+        } else {
+            cartItem = new CartItem();
+            cartItem.setProduct(product);
+            cartItem.setQuantity(1);
+            cartItem.setCart(this);
+            items.add(cartItem);
+        }
+        return cartItem;
     }
 
 }
