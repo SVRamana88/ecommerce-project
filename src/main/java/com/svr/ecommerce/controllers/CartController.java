@@ -1,9 +1,6 @@
 package com.svr.ecommerce.controllers;
 
-import com.svr.ecommerce.dtos.AddItemToCartRequest;
-import com.svr.ecommerce.dtos.CartDto;
-import com.svr.ecommerce.dtos.CartItemDto;
-import com.svr.ecommerce.dtos.UpdateCartItemRequest;
+import com.svr.ecommerce.dtos.*;
 import com.svr.ecommerce.exceptions.CartNotFoundException;
 import com.svr.ecommerce.exceptions.ProductNotFoundException;
 import com.svr.ecommerce.services.CartService;
@@ -82,12 +79,12 @@ public class CartController {
     }
 
     @ExceptionHandler(CartNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleCartNotFound() {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Cart not found."));
+    public ResponseEntity<ErrorDto> handleCartNotFound() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Cart not found."));
     }
 
     @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleProductNotFound() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Product was  not found in the cart."));
+    public ResponseEntity<ErrorDto> handleProductNotFound() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDto("Product was  not found in the cart."));
     }
 }
