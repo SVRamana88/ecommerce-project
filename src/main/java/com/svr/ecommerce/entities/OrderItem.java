@@ -2,6 +2,7 @@ package com.svr.ecommerce.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 @Setter
 @Table(name = "order_items")
 @Entity
+@NoArgsConstructor
 public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,4 +34,12 @@ public class OrderItem {
 
     @Column(name = "total_price")
     private BigDecimal total_price;
+
+    public OrderItem(Order order, Product product, Integer quantity) {
+        this.order = order;
+        this.product = product;
+        this.quantity = quantity;
+        this.unit_price = product.getPrice();
+        this.total_price = unit_price.multiply(BigDecimal.valueOf(quantity));
+    }
 }

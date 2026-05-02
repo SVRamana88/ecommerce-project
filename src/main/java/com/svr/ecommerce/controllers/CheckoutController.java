@@ -2,13 +2,17 @@ package com.svr.ecommerce.controllers;
 
 import com.svr.ecommerce.dtos.CheckoutRequest;
 import com.svr.ecommerce.dtos.CheckoutResponse;
+import com.svr.ecommerce.dtos.ErrorDto;
 import com.svr.ecommerce.entities.Order;
 import com.svr.ecommerce.entities.OrderItem;
 import com.svr.ecommerce.entities.OrderStatus;
+import com.svr.ecommerce.exceptions.CartEmptyException;
+import com.svr.ecommerce.exceptions.CartNotFoundException;
 import com.svr.ecommerce.repositories.CartRepository;
 import com.svr.ecommerce.repositories.OrderRepository;
 import com.svr.ecommerce.services.AuthService;
 import com.svr.ecommerce.services.CartService;
+import com.svr.ecommerce.services.CheckoutService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,37 +24,15 @@ import java.util.Map;
 @RequestMapping("/checkout")
 @AllArgsConstructor
 public class CheckoutController {
-    private final CartRepository cartRepository;
-    private final OrderRepository orderRepository;
-    private final AuthService authService;
-    private final CartService cartService;
+    private final CheckoutService checkoutService;
+
     @PostMapping
-    public ResponseEntity<?> checkout(@Valid @RequestBody CheckoutRequest request) {
-        var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
-        if(cart == null)
-            return ResponseEntity.badRequest().body(Map.of("error", "Cart not found"));
-        if(cart.getItems().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Cart is empty"));
-        }
+    public CheckoutResponse checkout(@Valid @RequestBody CheckoutRequest request) {
+        return checkoutService.checkout(request.getCartId());
+    }
 
-        Order order = new Order();
-        order.setCustomer(authService.getCurrentUser());
-        order.setStatus(OrderStatus.PENDING);
-        order.setTotal_price(cart.getTotalPrice());
-
-        cart.getItems().forEach(cartItem -> {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setProduct(cartItem.getProduct());
-            orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setUnit_price(cartItem.getProduct().getPrice());
-            orderItem.setTotal_price(cartItem.getTotalPrice());
-            order.getItems().add(orderItem);
-        });
-
-        orderRepository.save(order);
-        cartService.clearItems(request.getCartId());
-
-        return ResponseEntity.ok().body(new CheckoutResponse(order.getId()));
+    @ExceptionHandler({CartNotFoundException.class, CartEmptyException.class})
+    public ResponseEntity<ErrorDto> handleException(Exception e) {
+        return ResponseEntity.badRequest().body(new ErrorDto(e.getMessage()));
     }
 }
