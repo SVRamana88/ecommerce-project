@@ -63,6 +63,10 @@ public class User {
         favoriteProducts.add(product);
     }
 
+//
+//    @OneToMany(mappedBy = "customer", cascade = CascadeType.REMOVE, orphanRemoval = true)
+//    private List<Order> orders = new ArrayList<>();
+
     @Override
     public String toString() {
         return getClass().getSimpleName() + "(" +
