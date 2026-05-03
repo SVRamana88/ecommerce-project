@@ -27,19 +27,19 @@ public class OrderItem {
     private Product product;
 
     @Column(name = "unit_price")
-    private BigDecimal unit_price;
+    private BigDecimal unitPrice;
 
     @Column(name = "quantity")
     private Integer quantity;
 
     @Column(name = "total_price")
-    private BigDecimal total_price;
+    private BigDecimal totalPrice;
 
     public OrderItem(Order order, Product product, Integer quantity) {
         this.order = order;
         this.product = product;
         this.quantity = quantity;
-        this.unit_price = product.getPrice();
-        this.total_price = unit_price.multiply(BigDecimal.valueOf(quantity));
+        this.unitPrice = product.getPrice();
+        this.totalPrice = unitPrice.multiply(BigDecimal.valueOf(quantity));
     }
 }

@@ -29,10 +29,10 @@ public class Order {
     private OrderStatus status;
 
     @Column(name = "created_at", insertable = false, updatable = false)
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 
     @Column(name = "total_price")
-    private BigDecimal total_price;
+    private BigDecimal totalPrice;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private Set<OrderItem> items = new LinkedHashSet<>();
@@ -41,7 +41,7 @@ public class Order {
         Order order = new Order();
         order.setCustomer(customer);
         order.setStatus(OrderStatus.PENDING);
-        order.setTotal_price(cart.getTotalPrice());
+        order.setTotalPrice(cart.getTotalPrice());
 
         cart.getItems().forEach(item -> {
             OrderItem orderItem = new OrderItem(order, item.getProduct(), item.getQuantity());
@@ -49,5 +49,9 @@ public class Order {
         });
 
         return order;
+    }
+
+    public boolean isPlacedBy(User customer) {
+        return this.customer.equals(customer);
     }
 }
